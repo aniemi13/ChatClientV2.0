@@ -2,19 +2,20 @@ package com.niemiec.objects;
 
 import com.niemiec.connection.Connection;
 import com.niemiec.controllers.ChatController;
-import com.niemiec.controllers.GetNickController;
 import com.niemiec.logic.MessagesManagement;
 
 
 public class Client {
 	private Connection connection;
 	private MessagesManagement messagesManagement;
-
-	public Client(ChatController chatController, String nick) {
-		createConnection();
-		this.messagesManagement = new MessagesManagement(chatController, nick);
+	
+	public Client() {
+		messagesManagement = new MessagesManagement();
 	}
-
+	
+	public void setChatController(ChatController chatController) {
+		messagesManagement.setChatController(chatController);
+	}
 	public void setUserNickToPrivateMessage(String actualInterlocutor) {
 		messagesManagement.setActualInterlocutor(actualInterlocutor);
 	}
@@ -31,13 +32,21 @@ public class Client {
 		messagesManagement.receiveTheObject(object);
 	}
 
-	private void createConnection() {
-		this.connection = GetNickController.getConnection();
-		this.connection.setClient(this);
-	}
-
 	public void exit() {
 		connection.sendTheObject(messagesManagement.exit());
 		connection.interrupt();
+	}
+	
+	public void setNick(String nick) {
+		messagesManagement.setNick(nick);
+	}
+
+	public void setConnection(Connection connection) {
+		this.connection = connection;
+		this.connection.setClient(this);
+	}
+
+	public void readyToWork() {
+		connection.sendTheObject(messagesManagement.sendReadyToWork());
 	}
 }

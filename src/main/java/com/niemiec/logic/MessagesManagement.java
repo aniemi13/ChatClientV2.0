@@ -20,9 +20,7 @@ public class MessagesManagement {
 	private String rightMessage;
 	private String actualInterlocutor;
 
-	public MessagesManagement(ChatController chatController, String nick) {
-		this.chatController = chatController;
-		this.nick = nick;
+	public MessagesManagement() {
 		this.actualInterlocutor = "";
 		this.interlocutorsManager = new InterlocutorsManager();
 		this.generalChat = new GeneralChat();
@@ -154,4 +152,15 @@ public class MessagesManagement {
 		return new String("/exit/" + nick);
 	}
 
+	public void setNick(String nick) {
+		this.nick = nick;
+	}
+
+	public Object sendReadyToWork() {
+		return new String("/rw/" + nick);
+	}
+	
+	public void setChatController(ChatController chatController) {
+		this.chatController = chatController;
+	}
 }

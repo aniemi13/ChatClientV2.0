@@ -48,7 +48,10 @@ public class ChatController {
 	void initialize() {
 		usersList = FXCollections.observableArrayList();
 		privateList = FXCollections.observableArrayList();
-		this.client = new Client(this, GetNickController.nick);
+	}
+	
+	public void setNick(String nick) {
+		this.client.setNick(nick);
 	}
 
 	@FXML
@@ -148,5 +151,9 @@ public class ChatController {
 	public void exit() {
 		client.exit();
 		System.exit(-1);
+	}
+
+	public void setClient(Client client) {
+		this.client = client;
 	}
 }

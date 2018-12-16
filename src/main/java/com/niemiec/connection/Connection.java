@@ -12,21 +12,19 @@ public class Connection extends Thread {
 	private Socket socket;
 	private boolean isConnected;
 	private InputOutputStream inputOutputStream;
-	private boolean closeTheConnection;
 	
 	public Connection(GetNickController getNickController, String host, int port) {
 		this.getNickController = getNickController;
 		this.client = null;
 		this.isConnected = false;
 		makeTheConnection(host, port);
-		this.closeTheConnection = false;
 		this.inputOutputStream = new InputOutputStream(socket);
 	}
 
 	@Override
 	public void run() {
 		Object object = null;
-		while (!closeTheConnection) {
+		while (true) {
 			object = inputOutputStream.receiveTheObject();
 			receiveTheObject(object);	
 		}
@@ -61,8 +59,9 @@ public class Connection extends Thread {
 		}
 	}
 	
+	@SuppressWarnings("deprecation")
 	public void interrupt() {
-		closeTheConnection = true;
+		this.stop();
 		inputOutputStream.closeInputOutputStream();
 		super.interrupt();
 		try {
@@ -78,10 +77,6 @@ public class Connection extends Thread {
 	
 	public void sendTheObject(Object object) {
 		inputOutputStream.sendTheObject(object);
-	}
-	
-	public void closeTheConnection() {
-		closeTheConnection = true;
 	}
 	
 	public void setClient(Client client) {

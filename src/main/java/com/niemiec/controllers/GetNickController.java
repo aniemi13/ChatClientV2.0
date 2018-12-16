@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 
 import com.niemiec.connection.Connection;
 import com.niemiec.logic.CheckNickManagement;
+import com.niemiec.objects.Client;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -33,9 +34,10 @@ public class GetNickController {
 	@FXML
 	private Button saveNickButton;
 
-	protected static String nick = null;
+	private String nick = null;
 	private FXMLLoader loader = null;
-	private static Connection connection;
+	private Connection connection;
+	private Client client = null;
 	private CheckNickManagement checkNickManagement = null;
 	private boolean nickIsOk = false;
 
@@ -43,6 +45,7 @@ public class GetNickController {
 	void initialize() {
 		connection = new Connection(this, "localhost", 6666);
 		connection.start();
+		client = new Client();
 		checkNickManagement = new CheckNickManagement();
 	}
 
@@ -84,7 +87,7 @@ public class GetNickController {
 		Platform.runLater(() -> {
 			String answer = (String) object;
 			if (!checkNickManagement.checkIfNickIsOk(answer)) {
-				informationLabel.setText("Taki nick już istnieje w bazie");
+				informationLabel.setText("Wybrany przez Ciebie link jest już zajęty");
 				return;
 			}
 			nickIsOk = true;
@@ -97,10 +100,6 @@ public class GetNickController {
 		return nickIsOk;
 	}
 
-	public static Connection getConnection() {
-		return connection;
-	}
-
 	// TODO brzydko wygląda, ale póki co zostawię
 	private void viewChatAndSendNick() {
 		Platform.runLater(() -> {
@@ -108,6 +107,14 @@ public class GetNickController {
 			try {
 				loader = getFXMLLoader();
 				HBox chatWindow = loader.load();
+				
+				ChatController cc = loader.getController();
+				client.setNick(nick);
+				client.setConnection(connection);
+				client.setChatController(cc);
+				client.readyToWork();
+				cc.setClient(client);
+				
 				mainVBox.getChildren().setAll(chatWindow);
 				stage.close();
 				stage.setWidth(chatWindow.getPrefWidth());
