@@ -3,14 +3,20 @@ package com.niemiec.logic;
 import java.util.ArrayList;
 
 import com.niemiec.controllers.ChatController;
+import com.niemiec.controllers.GetNickController;
 import com.niemiec.objects.GeneralChat;
 import com.niemiec.objects.managers.InterlocutorsManager;
 
 public class MessagesManagement {
 	private final String PRIVATE_MESSAGE = "pm";
 	private final String GROUP_MESSAGE = "gm";
+	private final String CHECK_NICK_MESSAGE = "cn";
+	private final String NICK_NOTEXIST = "notexist";
+	private final String SEPARATOR = "/";
+	private final String READY_TO_WORK = "rw";
 
 	private ChatController chatController;
+	private GetNickController getNickController;
 	private InterlocutorsManager interlocutorsManager;
 	private GeneralChat generalChat;
 	private String message;
@@ -37,13 +43,24 @@ public class MessagesManagement {
 	public void messageIsString(Object object) {
 		message = (String) object;
 		separateMessage();
-
+		
 		if (typeOfMessage.equals(PRIVATE_MESSAGE)) {
 			receivedPrivateMessage();
 		} else if (typeOfMessage.equals(GROUP_MESSAGE)) {
 			receivedAndViewGroupMessage();
+		} else if (typeOfMessage.equals(CHECK_NICK_MESSAGE)) {
+			receivedCheckNickMessage();
 		}
 		message = null;
+	}
+
+	private void receivedCheckNickMessage() {
+
+		boolean nickIsOk = false;
+		if (rightMessage.equals(NICK_NOTEXIST)) {
+			nickIsOk = true;
+		}
+		getNickController.reciveTheInformation(nickIsOk);
 	}
 
 	private void receivedPrivateMessage() {
@@ -73,18 +90,26 @@ public class MessagesManagement {
 			getNickAndInterlocutorNickAndRightMessageFromMessage();
 		} else if (typeOfMessage.equals(GROUP_MESSAGE)) {
 			getNickAndRightMessageFromMessage();
+		} else if (typeOfMessage.equals(CHECK_NICK_MESSAGE)) {
+			getCheckNickInformation();
 		}
 	}
 
+	private void getCheckNickInformation() {
+		String[] s = message.split(SEPARATOR, 3);
+		typeOfMessage = s[1];
+		rightMessage = s[2];
+	}
+
 	private void getNickAndInterlocutorNickAndRightMessageFromMessage() {
-		String[] s = message.split("/", 5);
+		String[] s = message.split(SEPARATOR, 5);
 		typeOfMessage = s[1];
 		senderNick = s[2];
 		rightMessage = s[4];
 	}
 
 	private void getNickAndRightMessageFromMessage() {
-		String[] s = message.split("/", 4);
+		String[] s = message.split(SEPARATOR, 4);
 		typeOfMessage = s[1];
 		senderNick = s[2];
 		rightMessage = s[3];
@@ -134,7 +159,7 @@ public class MessagesManagement {
 	}
 
 	public Object sendToGeneralChat(String message) {
-		return new String("/" + GROUP_MESSAGE + "/" + nick + "/" + message);
+		return new String(SEPARATOR + GROUP_MESSAGE + SEPARATOR + nick + SEPARATOR + message);
 	}
 
 	public void highlightTheFieldInListView(String nick) {
@@ -145,7 +170,7 @@ public class MessagesManagement {
 		String m = "TY> " + message;
 		chatController.addMessageToPrivateChat(m);
 		interlocutorsManager.addMessage(actualInterlocutor, m);
-		return new String("/" + PRIVATE_MESSAGE + "/" + nick + "/" + actualInterlocutor + "/" + message);
+		return new String(SEPARATOR + PRIVATE_MESSAGE + SEPARATOR + nick + SEPARATOR + actualInterlocutor + SEPARATOR + message);
 	}
 
 	public Object exit() {
@@ -157,10 +182,18 @@ public class MessagesManagement {
 	}
 
 	public Object sendReadyToWork() {
-		return new String("/rw/" + nick);
+		return new String(SEPARATOR + READY_TO_WORK + SEPARATOR + nick);
 	}
 	
 	public void setChatController(ChatController chatController) {
 		this.chatController = chatController;
+	}
+
+	public void setGetNickController(GetNickController getNickController) {
+		this.getNickController = getNickController;
+	}
+
+	public Object sendNickToCheck(String nick) {
+		return new String(SEPARATOR + CHECK_NICK_MESSAGE + SEPARATOR + nick);
 	}
 }

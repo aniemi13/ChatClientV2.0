@@ -3,8 +3,6 @@ package com.niemiec.controllers;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
-import com.niemiec.connection.Connection;
-import com.niemiec.logic.CheckNickManagement;
 import com.niemiec.objects.Client;
 
 import javafx.application.Platform;
@@ -33,20 +31,18 @@ public class GetNickController {
 
 	@FXML
 	private Button saveNickButton;
-
-	private String nick = null;
+	
+	@FXML
 	private FXMLLoader loader = null;
-	private Connection connection;
+	
+	private String nick = null;
 	private Client client = null;
-	private CheckNickManagement checkNickManagement = null;
 	private boolean nickIsOk = false;
 
 	@FXML
 	void initialize() {
-		connection = new Connection(this, "localhost", 6666);
-		connection.start();
-		client = new Client();
-		checkNickManagement = new CheckNickManagement();
+		client = new Client("localhost", 6666);
+		client.setGetNickController(this);
 	}
 
 	@FXML
@@ -64,11 +60,7 @@ public class GetNickController {
 			informationLabel.setText("Błędny nick");
 			return;
 		}
-		sendNickForCheck();
-	}
-
-	private void sendNickForCheck() {
-		connection.sendTheObject(checkNickManagement.sendNick(nick));
+		client.sendNickToCheck(nick);
 	}
 
 	private void getNick() {
@@ -76,31 +68,16 @@ public class GetNickController {
 		if (nick == null) {
 			nick = "";
 		}
-
 	}
 
 	public void initData(Stage stage) {
 		this.stage = stage;
 	}
 
-	public void receiveTheObject(Object object) {
-		Platform.runLater(() -> {
-			String answer = (String) object;
-			if (!checkNickManagement.checkIfNickIsOk(answer)) {
-				informationLabel.setText("Wybrany przez Ciebie link jest już zajęty");
-				return;
-			}
-			nickIsOk = true;
-			viewChatAndSendNick();
-
-		});
-	}
-
 	public boolean getNickIsOk() {
 		return nickIsOk;
 	}
 
-	// TODO brzydko wygląda, ale póki co zostawię
 	private void viewChatAndSendNick() {
 		Platform.runLater(() -> {
 
@@ -109,10 +86,7 @@ public class GetNickController {
 				HBox chatWindow = loader.load();
 				
 				ChatController cc = loader.getController();
-				client.setNick(nick);
-				client.setConnection(connection);
-				client.setChatController(cc);
-				client.readyToWork();
+				updateClientData(cc);
 				cc.setClient(client);
 				
 				mainVBox.getChildren().setAll(chatWindow);
@@ -124,6 +98,24 @@ public class GetNickController {
 			} catch (IOException e) {
 				System.out.println("Nie udało się wczytać nowego okna: " + e);
 			}
+		});
+	}
+
+	private void updateClientData(ChatController cc) {
+		client.setNick(nick);
+		client.setChatController(cc);
+		client.readyToWork();
+	}
+
+	public void reciveTheInformation(boolean nickIsOk) {
+		Platform.runLater(() -> {
+			if (!nickIsOk) {
+				informationLabel.setText("Wybrany przez Ciebie link jest już zajęty");
+				return;
+			}
+			this.nickIsOk = true;
+			viewChatAndSendNick();
+
 		});
 	}
 }

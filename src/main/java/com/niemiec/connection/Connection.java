@@ -3,19 +3,16 @@ package com.niemiec.connection;
 import java.io.IOException;
 import java.net.Socket;
 
-import com.niemiec.controllers.GetNickController;
-import com.niemiec.objects.Client;
+import com.niemiec.logic.MessagesManagement;
 
 public class Connection extends Thread {
-	private GetNickController getNickController;
-	private Client client;
+	private MessagesManagement messagesManagement;
 	private Socket socket;
 	private boolean isConnected;
 	private InputOutputStream inputOutputStream;
-	
-	public Connection(GetNickController getNickController, String host, int port) {
-		this.getNickController = getNickController;
-		this.client = null;
+
+	public Connection(MessagesManagement messagesManagement, String host, int port) {
+		this.messagesManagement = messagesManagement;
 		this.isConnected = false;
 		makeTheConnection(host, port);
 		this.inputOutputStream = new InputOutputStream(socket);
@@ -26,27 +23,8 @@ public class Connection extends Thread {
 		Object object = null;
 		while (true) {
 			object = inputOutputStream.receiveTheObject();
-			receiveTheObject(object);	
+			messagesManagement.receiveTheObject(object);
 		}
-	}
-
-	private void receiveTheObject(Object object) {
-		checkIfClientIsExist();
-		if (client != null) {
-			client.receiveTheObject(object);
-		} else {
-			getNickController.receiveTheObject(object);
-		}
-	}
-
-	private void checkIfClientIsExist() {
-		if (client == null) {
-			try {
-				sleep(500);
-			} catch (InterruptedException e) {
-			}
-		}
-			
 	}
 
 	public void makeTheConnection(String host, int port) {
@@ -58,7 +36,7 @@ public class Connection extends Thread {
 			System.out.println("Błąd tworzenia połączenia: " + e);
 		}
 	}
-	
+
 	@SuppressWarnings("deprecation")
 	public void interrupt() {
 		this.stop();
@@ -74,12 +52,8 @@ public class Connection extends Thread {
 	public boolean isConnected() {
 		return isConnected;
 	}
-	
+
 	public void sendTheObject(Object object) {
 		inputOutputStream.sendTheObject(object);
-	}
-	
-	public void setClient(Client client) {
-		this.client = client;
 	}
 }
